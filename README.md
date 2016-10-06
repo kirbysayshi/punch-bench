@@ -118,6 +118,12 @@ punch.configure({
 punch.go();
 ```
 
+Then run it:
+
+```
+node ./my-file.js
+```
+
 Options
 -------
 
@@ -149,6 +155,7 @@ Sometimes you want to compare things, but don't want to worry about suites and e
 TODO
 ----
 
+- Better description of stats / names.
 - Tests: not 100% critical yet, since this is still pretty simple. But the data structures are pretty weird, so tests would help make that clearer.
 - Refactor general structure. Everything is `__prefixed` right now to prevent script collisions, but that could be avoided by making them hang off of `punch`.
 
