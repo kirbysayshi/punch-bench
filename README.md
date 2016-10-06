@@ -146,6 +146,12 @@ Rationale
 
 Sometimes you want to compare things, but don't want to worry about suites and events and stats and whatnot. And sometimes you want to test things in a browser, but don't want to worry about `require` or libraries. So this utility outputs the JS you need to execute in a browser or node to get some useful stats.
 
+TODO
+----
+
+- Tests: not 100% critical yet, since this is still pretty simple. But the data structures are pretty weird, so tests would help make that clearer.
+- Refactor general structure. Everything is `__prefixed` right now to prevent script collisions, but that could be avoided by making them hang off of `punch`.
+
 License
 -------
 
