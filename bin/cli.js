@@ -18,30 +18,3 @@ var output = bench.replace('/** TESTS GO HERE **/', testFile)
   + (testFile.indexOf('punch.go()') > -1 ? '' : 'punch.go();\n');
 
 console.log(output);
-
-// var benchCount = 100;
-
-// var testRoute = 'mixify-view/v1/timestretched-tracklist';
-// //var testRoute = 'mixify-view/v1/time-stretch-media?track-gid-with-dashes=ad3f9056-09f0-45bc-94d4-6c3d42894d5b&tempo=120';
-
-// function fetchTest(done) {
-//   spfetch('https://spclient.wg.spotify.com/' + testRoute)
-//     .then(res => res.json())
-//     .then(res => {
-//       done();
-//     })
-// }
-
-// function hermesTest(done) {
-//   cosmos.resolver.get('hm://' + testRoute, (err, res) => {
-//     res.getJSONBody();
-//     done();
-//   })
-// }
-
-// compare(
-//   [ hermesTest, fetchTest ],
-//   benchCount,
-//   performance.now.bind(performance),
-//   asTable.bind(null, testRoute)
-// );
