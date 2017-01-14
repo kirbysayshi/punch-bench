@@ -2,8 +2,9 @@
 // benchmark, or more control.
 
 var fs = require('fs');
+var path = require('path');
 
-var bench = fs.readFileSync('./src/bench.js', 'utf8');
+var bench = fs.readFileSync(path.join(__dirname, './src/bench.js'), 'utf8');
 
 eval(bench); // YUUUUP
 
