@@ -63,6 +63,7 @@ function __summarize (namedStats) {
 
   function statSummary (namedStats, statName) {
     var values = namedStats.map(({ stats }) => stats[statName]);
+    var total = values.reduce((all, v) => all + v, 0);
     var idxFastest = values.indexOf(Math.min.apply(null, values));
     var idxSlowest = values.indexOf(Math.max.apply(null, values));
     var diff = values[idxSlowest] - values[idxFastest];
@@ -76,7 +77,8 @@ function __summarize (namedStats) {
       slowest: nameSlowest,
       pctFaster,
       percentFaster: pctFasterPrint,
-      difference: diff.toFixed(2) + 'ms',
+      difference: diff.toFixed(3) + 'ms',
+      total: total.toFixed(3) + 'ms',
     }
   }
 }
@@ -90,7 +92,7 @@ function __compute (results) {
 }
 
 function __asTable (summaries) {
-  var fieldNames = [ 'fastest', 'percentFaster', 'difference' ];
+  var fieldNames = [ 'fastest', 'percentFaster', 'difference', 'total' ];
 
   var colSize = 20;
   var out = ''
