@@ -11,5 +11,8 @@ const bench = fs.readFileSync(path.join(__dirname, './dist/bench.js'), 'utf8');
 
 eval(bench); // YUUUUP
 
-// eslint-disable-next-line no-undef
+// This is provided by the `eval` above.
+/** @type {import('./bench').PunchBenchModule} */
+var punch;
+
 module.exports = punch;

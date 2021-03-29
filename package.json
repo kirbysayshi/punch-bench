@@ -3,12 +3,12 @@
   "version": "1.2.0",
   "description": "Benchmark different functions and get useful stats with zero config / mangling of numbers.",
   "bin": "bin/cli.js",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "bin",
     "src",
     "dist",
-    "index.js",
     "README.md"
   ],
   "scripts": {

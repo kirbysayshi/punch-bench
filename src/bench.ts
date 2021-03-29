@@ -3,9 +3,11 @@
 // This file cannot require anything, since it might get copy/pasted into a
 // browser later. It has to be self-contained.
 
-interface BenchedFunction {
+export interface BenchedFunction {
   (done: (err?: Error) => void): void;
 }
+
+export type PunchBenchModule = typeof punch;
 
 type BenchResult = {
   name: string;
