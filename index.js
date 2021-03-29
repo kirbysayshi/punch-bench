@@ -4,7 +4,7 @@
 var fs = require('fs');
 var path = require('path');
 
-var bench = fs.readFileSync(path.join(__dirname, './src/bench.js'), 'utf8');
+var bench = fs.readFileSync(path.join(__dirname, './dist/bench.js'), 'utf8');
 
 eval(bench); // YUUUUP
 

@@ -11,7 +11,7 @@ try {
   process.exit(1);
 }
 
-var bench = fs.readFileSync(path.join(__dirname, '../src/bench.js'), 'utf8');
+var bench = fs.readFileSync(path.join(__dirname, '../dist/bench.js'), 'utf8');
 var testFile = fs.readFileSync(testPath, 'utf8');
 
 var output = bench.replace('/** TESTS GO HERE **/', testFile)
