@@ -5,6 +5,7 @@
   "bin": "bin/cli.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "browser": "dist/bench.js",
   "files": [
     "bin",
     "src",

@@ -232,6 +232,10 @@ punch.reset = function () {
 // Kick off initial configuration population.
 punch.configure({});
 
+if (typeof module !== 'undefined') {
+  module.exports = punch;
+}
+
 // The following comment will be replaced with the contents of the
 // user-provided test file.
 /** TESTS GO HERE **/
