@@ -9,6 +9,13 @@ export interface BenchedFunction {
 
 export type PunchBenchModule = typeof punch;
 
+export type OnFinished = (
+  table: string,
+  results: BenchResult[],
+  computed: { name: string; stats: Stats }[],
+  summaries: SummarizedStats
+) => void;
+
 type BenchResult = {
   name: string;
   durations: number[];
@@ -56,7 +63,7 @@ function __bench(
         remaining -= 1;
         lastStart = timingFn();
         fn(after);
-      });
+      }, 0);
     } else {
       return complete(durations.slice(1));
     }
@@ -176,6 +183,7 @@ function __asTable(summaries: SummarizedStats) {
   });
 
   console.log(out);
+  return out;
 
   function padColumn(text: string, intended: number) {
     const pad = Array(intended).fill(" ").join("");
@@ -219,12 +227,13 @@ punch.configure = function (opts: Partial<PunchBenchOptions>) {
   __opts = Object.assign({}, __defaultOptions, opts);
 };
 
-punch.go = function () {
+punch.go = function (cb?: OnFinished) {
   if (!__opts) throw new Error(".configure has not been called! Abort.");
   __compare(__tests, __opts.count, __opts.nowFn, function (results) {
     const computed = __compute(results);
     const summaries = __summarize(computed);
-    __asTable(summaries);
+    const table = __asTable(summaries);
+    if (cb) return cb(table, results, computed, summaries);
   });
 };
 
