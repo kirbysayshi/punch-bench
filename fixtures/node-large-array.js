@@ -1,9 +1,12 @@
-var punch = require('../');
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-env node */
 
-var hugeArray = Array(10000).fill('yo');
+const punch = require('../');
+
+const hugeArray = Array(10000).fill('yo');
 
 punch(function manualForLoop (done) {
-  for (var i = 0; i < hugeArray.length; i++) {
+  for (let i = 0; i < hugeArray.length; i++) {
     hugeArray[i];
   }
   done();

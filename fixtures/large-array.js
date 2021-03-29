@@ -2,6 +2,7 @@
 
 var hugeArray = Array(10000).fill('yo');
 
+// eslint-disable-next-line no-undef
 punch(function manualForLoop (done) {
   for (var i = 0; i < hugeArray.length; i++) {
     hugeArray[i];
@@ -9,6 +10,7 @@ punch(function manualForLoop (done) {
   done();
 });
 
+// eslint-disable-next-line no-undef
 punch(function forEachLoop (done) {
   hugeArray.forEach(function (entry) {
     entry;

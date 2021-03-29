@@ -1,3 +1,5 @@
+/* eslint-env shared-node-browser */
+
 // This file cannot require anything, since it might get copy/pasted into a
 // browser later. It has to be self-contained.
 
@@ -29,11 +31,9 @@ type SingleStatSummary = {
   total: string;
 };
 
-
 type NamedStats = { name: string; stats: Stats };
 
 type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
-
 
 function __bench(
   fn: BenchedFunction,
@@ -41,12 +41,12 @@ function __bench(
   timingFn: PunchBenchOptions["nowFn"],
   complete: (durations: number[]) => void
 ) {
-  var durations: number[] = [];
-  var remaining = times;
-  var lastStart = timingFn();
+  const durations: number[] = [];
+  let remaining = times;
+  let lastStart = timingFn();
 
   function after() {
-    var duration = timingFn() - lastStart;
+    const duration = timingFn() - lastStart;
     durations.push(duration);
 
     if (remaining > 0) {
@@ -69,9 +69,9 @@ function __compare(
   timingFn: PunchBenchOptions["nowFn"],
   complete: (results: BenchResult[]) => void
 ) {
-  var remaining = tests;
-  var results: BenchResult[] = [];
-  var testFn: BenchedFunction | undefined;
+  const remaining = tests;
+  const results: BenchResult[] = [];
+  let testFn: BenchedFunction | undefined;
 
   function run(result?: number[]) {
     if (result && testFn)
@@ -88,13 +88,13 @@ function __compare(
 }
 
 function __minMaxMeanMedianPct99Pct95(times: number[]): Stats {
-  var min = Math.min.apply(null, times);
-  var max = Math.max.apply(null, times);
-  var mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
-  var sortedAsc = times.sort((a, b) => a - b);
-  var median = sortedAsc[Math.floor((times.length - 1) / 2)]!;
-  var pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
-  var pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
+  const min = Math.min.apply(null, times);
+  const max = Math.max.apply(null, times);
+  const mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
+  const sortedAsc = times.sort((a, b) => a - b);
+  const median = sortedAsc[Math.floor((times.length - 1) / 2)]!;
+  const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
+  const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
   return { min, max, mean, median, pct99, pct95 };
 }
 
@@ -110,15 +110,15 @@ function __summarize(namedStats: NamedStats[]) {
     namedStats: NamedStats[],
     statName: keyof Stats
   ): SingleStatSummary {
-    var values = namedStats.map(({ stats }) => stats[statName]);
-    var total = values.reduce((all, v) => all + v, 0);
-    var idxFastest = values.indexOf(Math.min.apply(null, values));
-    var idxSlowest = values.indexOf(Math.max.apply(null, values));
-    var diff = values[idxSlowest]! - values[idxFastest]!;
-    var pctFaster = 1 - values[idxFastest]! / values[idxSlowest]!;
-    var pctFasterPrint = (pctFaster * 100).toFixed(2) + "%";
-    var nameFastest = namedStats[idxFastest]!.name;
-    var nameSlowest = namedStats[idxSlowest]!.name;
+    const values = namedStats.map(({ stats }) => stats[statName]);
+    const total = values.reduce((all, v) => all + v, 0);
+    const idxFastest = values.indexOf(Math.min.apply(null, values));
+    const idxSlowest = values.indexOf(Math.max.apply(null, values));
+    const diff = values[idxSlowest]! - values[idxFastest]!;
+    const pctFaster = 1 - values[idxFastest]! / values[idxSlowest]!;
+    const pctFasterPrint = (pctFaster * 100).toFixed(2) + "%";
+    const nameFastest = namedStats[idxFastest]!.name;
+    const nameSlowest = namedStats[idxSlowest]!.name;
     return {
       type: statName,
       fastest: nameFastest,
@@ -133,7 +133,7 @@ function __summarize(namedStats: NamedStats[]) {
 
 
 function __compute(results: BenchResult[]) {
-  var stats = results.map((result) => ({
+  const stats = results.map((result) => ({
     name: result.name,
     stats: __minMaxMeanMedianPct99Pct95(result.durations),
   }));
@@ -141,15 +141,15 @@ function __compute(results: BenchResult[]) {
 }
 
 function __asTable(summaries: SummarizedStats) {
-  var fieldNames = [
+  const fieldNames = [
     "fastest",
     "percentFaster",
     "difference",
     "total",
   ] as (keyof SingleStatSummary)[];
 
-  var colSize = 20;
-  var out =
+  const colSize = 20;
+  let out =
     "" +
     padColumn("stat", colSize) +
     fieldNames.reduce((all, name) => all + padColumn(name, colSize), "") +
@@ -158,7 +158,7 @@ function __asTable(summaries: SummarizedStats) {
   out += out.replace(/./g, "-");
 
   (Object.keys(summaries) as (keyof Stats)[]).forEach((statName) => {
-    var stats = summaries[statName];
+    const stats = summaries[statName];
     out +=
       "" +
       padColumn(statName, colSize) +
@@ -172,14 +172,14 @@ function __asTable(summaries: SummarizedStats) {
   console.log(out);
 
   function padColumn(text: string, intended: number) {
-    var pad = Array(intended).fill(" ").join("");
+    const pad = Array(intended).fill(" ").join("");
     return (text + pad).slice(0, intended);
   }
 }
 
-var __envTimes = {
+const __envTimes = {
   node: function () {
-    var now = process.hrtime();
+    const now = process.hrtime();
     return (now[0] * 1e9 + now[1]) / 1e6;
   },
   browser: function () {
@@ -216,8 +216,8 @@ punch.configure = function (opts: Partial<PunchBenchOptions>) {
 punch.go = function () {
   if (!__opts) throw new Error(".configure has not been called! Abort.");
   __compare(__tests, __opts.count, __opts.nowFn, function (results) {
-    var computed = __compute(results);
-    var summaries = __summarize(computed);
+    const computed = __compute(results);
+    const summaries = __summarize(computed);
     __asTable(summaries);
   });
 };

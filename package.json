@@ -4,7 +4,7 @@
   "description": "Benchmark different functions and get useful stats with zero config / mangling of numbers.",
   "bin": "bin/cli.js",
   "main": "index.js",
-  "files":[
+  "files": [
     "bin",
     "src",
     "dist",
@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "lint": "eslint --ext .js,.ts index.js src bin",
     "test": "npm run build && node ./bin/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' "
   },
   "repository": {
@@ -31,6 +32,9 @@
   "homepage": "https://github.com/kirbysayshi/punch-bench#readme",
   "devDependencies": {
     "@types/node": "14",
+    "@typescript-eslint/eslint-plugin": "^4.20.0",
+    "@typescript-eslint/parser": "^4.20.0",
+    "eslint": "^7.23.0",
     "typescript": "^4.2.3"
   }
 }
