@@ -117,7 +117,12 @@ function __summarize(namedStats: NamedStats[]) {
     const idxFastest = values.indexOf(Math.min.apply(null, values));
     const idxSlowest = values.indexOf(Math.max.apply(null, values));
     const diff = values[idxSlowest]! - values[idxFastest]!;
-    const pctFaster = 1 - values[idxFastest]! / values[idxSlowest]!;
+    // If the slowest is zero... then it's likely something has been optimized out.
+    // TODO: fix this case.
+    const pctFaster =
+      1 -
+      values[idxFastest]! /
+        (values[idxSlowest]! === 0 ? 1 : values[idxSlowest]!);
     const pctFasterPrint = (pctFaster * 100).toFixed(2) + "%";
     const nameFastest = namedStats[idxFastest]!.name;
     const nameSlowest = namedStats[idxSlowest]!.name;
@@ -132,7 +137,6 @@ function __summarize(namedStats: NamedStats[]) {
     };
   }
 }
-
 
 function __compute(results: BenchResult[]) {
   const stats = results.map((result) => ({
@@ -232,7 +236,7 @@ punch.reset = function () {
 // Kick off initial configuration population.
 punch.configure({});
 
-if (typeof module !== 'undefined') {
+if (typeof module !== "undefined") {
   module.exports = punch;
 }
 
