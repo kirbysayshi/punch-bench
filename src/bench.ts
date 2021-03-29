@@ -4,7 +4,7 @@
 // browser later. It has to be self-contained.
 
 export interface BenchedFunction {
-  (done: (err?: Error) => void): void;
+  (done: () => void): void;
 }
 
 export type PunchBenchModule = typeof punch;

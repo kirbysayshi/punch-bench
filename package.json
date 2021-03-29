@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .js,.ts index.js src bin",
-    "test": "npm run build && node ./bin/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' "
+    "test": "npm run build && node ./bin/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' ",
+    "prepublishOnly": "npm run test"
   },
   "repository": {
     "type": "git",
