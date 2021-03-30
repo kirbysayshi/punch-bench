@@ -6,8 +6,6 @@ export interface BenchedFunction {
   (done: () => void): void;
 }
 
-export type PunchBenchModule = typeof punch;
-
 export type OnFinished = (
   table: string,
   results: BenchResult[],
@@ -48,4 +46,11 @@ export type NamedStats = { name: string; stats: Stats };
 
 export type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
 
+
+// export declare namespace punch {
+//   function configure (opts: Partial<PunchBenchOptions>): void;
+//   function go (cb?: PunchBench.OnFinished): void;
+//   function reset(): void;
 // }
+
+// export declare function punch(fn: PunchBench.BenchedFunction): void;

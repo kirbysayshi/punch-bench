@@ -12,7 +12,7 @@ const bench = fs.readFileSync(path.join(__dirname, './bench.js'), 'utf8');
 eval(bench); // YUUUUP
 
 // This is provided by the `eval` above.
-/** @type {import('./bench').PunchBenchModule} */
+/** @type {import('./bench').punch} */
 var punch;
 
 module.exports = punch;
