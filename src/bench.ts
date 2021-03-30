@@ -15,23 +15,23 @@ async function __bench(
   let frames = 0;
   let ticks = 0;
   let animHandle = 0;
-  let timeoutHandle: NodeJS.Timeout | null = null;
+  let timeoutHandle: NodeJS.Timeout | number = 0;
 
-  if (typeof window !== "undefined" && window.requestAnimationFrame) {
-    const doFrame = () =>
-      window.requestAnimationFrame(() => {
-        frames++;
-        animHandle = doFrame();
-      });
-    animHandle = doFrame();
+  function doFrame() {
+    frames++;
+    animHandle = requestAnimationFrame(doFrame);
   }
 
-  const doTick = () => setTimeout(() => {
+  function doTick() {
     ticks++;
-    timeoutHandle = doTick();
-  }, 0);
+    timeoutHandle = setTimeout(doTick);
+  }
 
-  timeoutHandle = doTick();
+  if (typeof window !== "undefined" && window.requestAnimationFrame) {
+    doFrame();
+  }
+
+  doTick();
   
   for (let i = 0; i < times; i++) {
     await new Promise<void>((resolve) => {
