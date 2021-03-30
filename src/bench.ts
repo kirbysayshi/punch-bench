@@ -52,9 +52,7 @@ async function __bench(
 ) {
   const durations: number[] = [];
 
-  const extra = times + Math.floor(times * 0.5);
-
-  for (let i = 0; i < extra; i++) {
+  for (let i = 0; i < times; i++) {
     await new Promise<void>((resolve) => {
       const start = timingFn();
       fn(() => {
@@ -65,7 +63,7 @@ async function __bench(
     });
   }
 
-  return durations.slice(0, times);
+  return durations;
 }
 
 async function __compare(
