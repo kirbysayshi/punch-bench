@@ -104,6 +104,8 @@ async function __compare(
 
   for (let i = 0; i < tests.length; i++) {
     const testFn = tests[i]!;
+    // Give the browser time for GC, hopefully.
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const { durations, frames, ticks } = await __bench(testFn, times, timingFn);
     results.push({ name: testFn.name, durations, frames, ticks });
   }
