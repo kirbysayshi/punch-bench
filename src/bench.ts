@@ -28,7 +28,6 @@ type Stats = {
   median: number;
   pct99: number;
   pct95: number;
-  sum: number;
 };
 
 type SingleStatSummary = {
@@ -45,53 +44,67 @@ type NamedStats = { name: string; stats: Stats };
 
 type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
 
-async function __bench(
+function __bench(
   fn: BenchedFunction,
   times: number,
   timingFn: PunchBenchOptions["nowFn"],
+  complete: (durations: number[]) => void
 ) {
   const durations: number[] = [];
+  let remaining = times;
+  let lastStart = timingFn();
 
-  for (let i = 0; i < times; i++) {
-    await new Promise<void>((resolve) => {
-      const start = timingFn();
-      fn(() => {
-        const end = timingFn();
-        durations.push(end - start);
-        resolve();
-      });
-    });
+  function after() {
+    const duration = timingFn() - lastStart;
+    durations.push(duration);
+
+    if (remaining > 0) {
+      setTimeout(function () {
+        remaining -= 1;
+        lastStart = timingFn();
+        fn(after);
+      }, 0);
+    } else {
+      return complete(durations.slice(1));
+    }
   }
 
-  return durations;
+  after();
 }
 
-async function __compare(
+function __compare(
   tests: BenchedFunction[],
   times: number,
   timingFn: PunchBenchOptions["nowFn"],
+  complete: (results: BenchResult[]) => void
 ) {
+  const remaining = tests;
   const results: BenchResult[] = [];
+  let testFn: BenchedFunction | undefined;
 
-  for (let i = 0; i < tests.length; i++) {
-    const testFn = tests[i]!;
-    const durations = await __bench(testFn, times, timingFn);
-    results.push({ name: testFn.name, durations });
+  function run(result?: number[]) {
+    if (result && testFn)
+      results.push({ name: testFn.name, durations: result });
+    testFn = remaining.shift();
+    if (testFn) {
+      return __bench(testFn, times, timingFn, run);
+    } else {
+      return complete(results.slice(0));
+    }
   }
 
-  return results;
+  run();
 }
 
 function __minMaxMeanMedianPct99Pct95(times: number[]): Stats {
   const min = Math.min.apply(null, times);
   const max = Math.max.apply(null, times);
   const mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
-  const sortedAsc = times.slice().sort((a, b) => a - b);
+  const sortedAsc = times.sort((a, b) => a - b);
   const median = sortedAsc[Math.floor((times.length - 1) / 2)]!;
   const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
   const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
-  const sum = times.reduce((sum, curr) => sum + curr, 0);
-  return { min, max, mean, median, pct99, pct95, sum };
+  return { min, max, mean, median, pct99, pct95 };
 }
 
 function __summarize(namedStats: NamedStats[]) {
@@ -216,7 +229,7 @@ punch.configure = function (opts: Partial<PunchBenchOptions>) {
 
 punch.go = function (cb?: OnFinished) {
   if (!__opts) throw new Error(".configure has not been called! Abort.");
-  __compare(__tests, __opts.count, __opts.nowFn).then(results => {
+  __compare(__tests, __opts.count, __opts.nowFn, function (results) {
     const computed = __compute(results);
     const summaries = __summarize(computed);
     const table = __asTable(summaries);
