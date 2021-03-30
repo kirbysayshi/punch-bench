@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-env node */
 
-const {punch} = require('../');
+const {punch, go, configure} = require('../');
 
 const hugeArray = Array(10000).fill('yo');
 
@@ -20,8 +20,8 @@ punch(function forEachLoop (done) {
 });
 
 // eslint-disable-next-line no-undef
-punch.configure({ count: 10000 });
+configure({ count: 10000 });
 
-punch.go((table, results, computed, summaries) => {
+go((table, results, computed, summaries) => {
   console.log(results, computed);
 });

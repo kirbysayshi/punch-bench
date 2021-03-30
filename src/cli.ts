@@ -21,9 +21,9 @@ function generateConcatedFile(testFile: string) {
   fs.writeFileSync(
     tempFile,
     `
-import {punch} from ${JSON.stringify(pathToPunchBenchMain)};
+import {punch, go, configure} from ${JSON.stringify(pathToPunchBenchMain)};
 ${testFile}
-${testFile.indexOf("punch.go()") > -1 ? "" : "punch.go();"}
+${testFile.indexOf("go()") > -1 ? "" : "go();"}
 `
   );
   return tempFile;

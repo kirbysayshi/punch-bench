@@ -19,4 +19,4 @@ punch(function forEachLoop (done) {
 });
 
 // eslint-disable-next-line no-undef
-punch.configure({ count: 10000 });
+configure({ count: 10000 });

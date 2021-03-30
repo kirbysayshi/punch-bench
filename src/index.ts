@@ -72,7 +72,7 @@ async function __bench(
   }
 
   doTick();
-  
+
   for (let i = 0; i < times; i++) {
     await new Promise<void>((resolve) => {
       const start = timingFn();
@@ -109,7 +109,11 @@ async function __compare(
   return results;
 }
 
-function __minMaxMeanMedianPct99Pct95(times: number[], frames: number, ticks: number): Stats {
+function __minMaxMeanMedianPct99Pct95(
+  times: number[],
+  frames: number,
+  ticks: number
+): Stats {
   const min = Math.min.apply(null, times);
   const max = Math.max.apply(null, times);
   const mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
@@ -119,10 +123,22 @@ function __minMaxMeanMedianPct99Pct95(times: number[], frames: number, ticks: nu
   const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
   const sum = times.reduce((sum, curr) => sum + curr, 0);
   const expectedFramesAt60FPS = sum / (1000 / 60);
-  const expectedTicks = sum / (typeof process !== 'undefined' ? 1 : 4); // Typical NODEJS/DOM clamping;
+  const expectedTicks = sum / (typeof process !== "undefined" ? 1 : 4); // Typical NODEJS/DOM clamping;
   const pctFramesOnTime = frames / expectedFramesAt60FPS;
   const pctTicksOnTime = ticks / expectedTicks;
-  return { min, max, mean, median, pct99, pct95, sum, frames, ticks, pctFramesOnTime, pctTicksOnTime };
+  return {
+    min,
+    max,
+    mean,
+    median,
+    pct99,
+    pct95,
+    sum,
+    frames,
+    ticks,
+    pctFramesOnTime,
+    pctTicksOnTime,
+  };
 }
 
 function __summarize(namedStats: NamedStats[]) {
@@ -166,7 +182,11 @@ function __summarize(namedStats: NamedStats[]) {
 function __compute(results: BenchResult[]) {
   const stats = results.map((result) => ({
     name: result.name,
-    stats: __minMaxMeanMedianPct99Pct95(result.durations, result.frames, result.ticks),
+    stats: __minMaxMeanMedianPct99Pct95(
+      result.durations,
+      result.frames,
+      result.ticks
+    ),
   }));
   return stats;
 }
@@ -219,9 +239,6 @@ const __envTimes = {
   },
 };
 
-// GLOBAL STATE, YEAH IT'S NOT GREAT BUT IT'S SIMPLE.
-const __tests: BenchedFunction[] = [];
-
 const __defaultOptions = {
   count: 1000,
   nowFn:
@@ -232,36 +249,36 @@ const __defaultOptions = {
       : __envTimes.browser,
 };
 
-type PunchBenchOptions = typeof __defaultOptions;
+export type PunchBenchOptions = typeof __defaultOptions;
 
-let __opts: null | PunchBenchOptions = null;
+class PunchBench {
+  private tests: BenchedFunction[] = [];
+  constructor(private opts: PunchBenchOptions = __defaultOptions) {
+    this.configure(opts);
+  }
 
-function punch(fn: BenchedFunction): void {
-  if (!fn) throw new Error("Expected a function, instead got " + fn);
-  __tests.push(fn);
+  // NOTE: using arrow assignment syntax to enable destructuring these from the
+  // instance. It's just a little nicer to use in a module file.
+
+  configure = (opts: PunchBenchOptions): void => {
+    this.opts = Object.assign({}, __defaultOptions, opts);
+  };
+
+  punch = (fn: BenchedFunction): void => {
+    this.tests.push(fn);
+  };
+
+  go = (cb?: OnFinished): void => {
+    __compare(this.tests, this.opts.count, this.opts.nowFn).then((results) => {
+      const computed = __compute(results);
+      const summaries = __summarize(computed);
+      const table = __asTable(summaries);
+      if (cb) return cb(table, results, computed, summaries);
+    });
+  };
 }
 
-punch.configure = function (opts: Partial<PunchBenchOptions>) {
-  __opts = Object.assign({}, __defaultOptions, opts);
-};
+// make a default instance
+export const { punch, go, configure } = new PunchBench();
 
-punch.go = function (cb?: OnFinished) {
-  if (!__opts) throw new Error(".configure has not been called! Abort.");
-  __compare(__tests, __opts.count, __opts.nowFn).then((results) => {
-    const computed = __compute(results);
-    const summaries = __summarize(computed);
-    const table = __asTable(summaries);
-    if (cb) return cb(table, results, computed, summaries);
-  });
-};
-
-punch.reset = function () {
-  punch.configure({});
-  __tests.length = 0;
-};
-
-// Kick off initial configuration population.
-punch.configure({});
-
-export { punch }
-export default punch;
+export { PunchBench };
