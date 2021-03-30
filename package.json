@@ -1,6 +1,6 @@
 {
   "name": "punch-bench",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Benchmark different functions and get useful stats with zero config / mangling of numbers.",
   "bin": "dist/cli.js",
   "main": "dist/index.js",
