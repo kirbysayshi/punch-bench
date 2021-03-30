@@ -2,12 +2,11 @@
   "name": "punch-bench",
   "version": "1.8.0",
   "description": "Benchmark different functions and get useful stats with zero config / mangling of numbers.",
-  "bin": "bin/cli.js",
+  "bin": "dist/cli.js",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist",
   "browser": "dist/bench.js",
   "files": [
-    "bin",
     "src",
     "dist",
     "README.md"
@@ -15,7 +14,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .js,.ts index.js src bin",
-    "test": "npm run build && node ./bin/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' ",
+    "test": "npm run build && node ./dist/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' ",
     "prepublishOnly": "npm run test"
   },
   "repository": {
@@ -33,10 +32,22 @@
   },
   "homepage": "https://github.com/kirbysayshi/punch-bench#readme",
   "devDependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/preset-typescript": "^7.13.0",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-replace": "^2.4.2",
+    "@rollup/plugin-url": "^6.0.0",
     "@types/node": "14",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "eslint": "^7.23.0",
+    "rollup": "^2.44.0",
     "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@types/tmp": "^0.2.0",
+    "tmp": "^0.2.1"
   }
 }
