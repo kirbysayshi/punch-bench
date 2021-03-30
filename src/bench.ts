@@ -28,6 +28,7 @@ type Stats = {
   median: number;
   pct99: number;
   pct95: number;
+  sum: number;
 };
 
 type SingleStatSummary = {
@@ -100,11 +101,12 @@ function __minMaxMeanMedianPct99Pct95(times: number[]): Stats {
   const min = Math.min.apply(null, times);
   const max = Math.max.apply(null, times);
   const mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
-  const sortedAsc = times.sort((a, b) => a - b);
+  const sortedAsc = times.slice().sort((a, b) => a - b);
   const median = sortedAsc[Math.floor((times.length - 1) / 2)]!;
   const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
   const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
-  return { min, max, mean, median, pct99, pct95 };
+  const sum = times.reduce((sum, curr) => sum + curr, 0);
+  return { min, max, mean, median, pct99, pct95, sum };
 }
 
 function __summarize(namedStats: NamedStats[]) {
