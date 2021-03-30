@@ -4,12 +4,14 @@ export interface BenchedFunction {
   (done: () => void): void;
 }
 
-export type OnFinished = (
-  table: string,
-  results: BenchResult[],
-  computed: { name: string; stats: Stats }[],
-  summaries: SummarizedStats
-) => void;
+export type PunchBenchResult = {
+  table: string;
+  results: BenchResult[];
+  computed: NamedStats[];
+  summaries: SummarizedStats;
+};
+
+export type OnFinished = (result: PunchBenchResult) => void;
 
 export type BenchResult = {
   name: string;
@@ -179,7 +181,7 @@ function __summarize(namedStats: NamedStats[]) {
   }
 }
 
-function __compute(results: BenchResult[]) {
+function __compute(results: BenchResult[]): NamedStats[] {
   const stats = results.map((result) => ({
     name: result.name,
     stats: __minMaxMeanMedianPct99Pct95(
@@ -268,13 +270,18 @@ class PunchBench {
     this.tests.push(fn);
   };
 
-  go = (cb?: OnFinished): void => {
-    __compare(this.tests, this.opts.count, this.opts.nowFn).then((results) => {
-      const computed = __compute(results);
-      const summaries = __summarize(computed);
-      const table = __asTable(summaries);
-      if (cb) return cb(table, results, computed, summaries);
-    });
+  go = async (cb?: OnFinished): Promise<PunchBenchResult> => {
+    const results = await __compare(
+      this.tests,
+      this.opts.count,
+      this.opts.nowFn
+    );
+    const computed = __compute(results);
+    const summaries = __summarize(computed);
+    const table = __asTable(summaries);
+    const finished = { table, results, computed, summaries };
+    if (cb) cb(finished);
+    return finished;
   };
 }
 
