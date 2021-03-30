@@ -19,4 +19,9 @@ punch(function forEachLoop (done) {
   done();
 });
 
-punch.go();
+// eslint-disable-next-line no-undef
+punch.configure({ count: 10000 });
+
+punch.go((table, results, computed, summaries) => {
+  console.log(results, computed);
+});

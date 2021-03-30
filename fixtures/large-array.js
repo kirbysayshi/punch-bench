@@ -17,3 +17,6 @@ punch(function forEachLoop (done) {
   });
   done();
 });
+
+// eslint-disable-next-line no-undef
+punch.configure({ count: 10000 });

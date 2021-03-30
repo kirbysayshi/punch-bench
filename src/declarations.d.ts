@@ -19,6 +19,7 @@ export type BenchResult = {
   name: string;
   durations: number[];
   frames: number;
+  ticks: number;
 };
 
 export type Stats = {
@@ -30,7 +31,7 @@ export type Stats = {
   pct95: number;
   sum: number;
   frames: number; // higher is better
-  // eventLoops: number; // higher is better
+  ticks: number; // higher is better
 };
 
 export type SingleStatSummary = {
