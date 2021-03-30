@@ -30,6 +30,8 @@ export type Stats = {
   sum: number;
   frames: number; // higher is better
   ticks: number; // higher is better
+  pctFramesOnTime: number;
+  pctTicksOnTime: number;
 };
 
 export type SingleStatSummary = {
@@ -45,7 +47,6 @@ export type SingleStatSummary = {
 export type NamedStats = { name: string; stats: Stats };
 
 export type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
-
 
 // export declare namespace punch {
 //   function configure (opts: Partial<PunchBenchOptions>): void;

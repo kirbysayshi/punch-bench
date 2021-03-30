@@ -78,7 +78,11 @@ function __minMaxMeanMedianPct99Pct95(times: number[], frames: number, ticks: nu
   const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
   const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
   const sum = times.reduce((sum, curr) => sum + curr, 0);
-  return { min, max, mean, median, pct99, pct95, sum, frames, ticks };
+  const expectedFramesAt60FPS = sum / (1000 / 60);
+  const expectedTicks = sum / (typeof process !== 'undefined' ? 1 : 4); // Typical NODEJS/DOM clamping;
+  const pctFramesOnTime = frames / expectedFramesAt60FPS;
+  const pctTicksOnTime = ticks / expectedTicks;
+  return { min, max, mean, median, pct99, pct95, sum, frames, ticks, pctFramesOnTime, pctTicksOnTime };
 }
 
 function __summarize(namedStats: PunchBench.NamedStats[]) {
