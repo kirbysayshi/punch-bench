@@ -45,56 +45,41 @@ type NamedStats = { name: string; stats: Stats };
 
 type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
 
-function __bench(
+async function __bench(
   fn: BenchedFunction,
   times: number,
   timingFn: PunchBenchOptions["nowFn"],
-  complete: (durations: number[]) => void
 ) {
   const durations: number[] = [];
-  let remaining = times;
-  let lastStart = timingFn();
 
-  function after() {
-    const duration = timingFn() - lastStart;
-    durations.push(duration);
-
-    if (remaining > 0) {
-      setTimeout(function () {
-        remaining -= 1;
-        lastStart = timingFn();
-        fn(after);
-      }, 0);
-    } else {
-      return complete(durations.slice(1));
-    }
+  for (let i = 0; i < times; i++) {
+    await new Promise<void>((resolve) => {
+      const start = timingFn();
+      fn(() => {
+        const end = timingFn();
+        durations.push(end - start);
+        resolve();
+      });
+    });
   }
 
-  after();
+  return durations;
 }
 
-function __compare(
+async function __compare(
   tests: BenchedFunction[],
   times: number,
   timingFn: PunchBenchOptions["nowFn"],
-  complete: (results: BenchResult[]) => void
 ) {
-  const remaining = tests;
   const results: BenchResult[] = [];
-  let testFn: BenchedFunction | undefined;
 
-  function run(result?: number[]) {
-    if (result && testFn)
-      results.push({ name: testFn.name, durations: result });
-    testFn = remaining.shift();
-    if (testFn) {
-      return __bench(testFn, times, timingFn, run);
-    } else {
-      return complete(results.slice(0));
-    }
+  for (let i = 0; i < tests.length; i++) {
+    const testFn = tests[i]!;
+    const durations = await __bench(testFn, times, timingFn);
+    results.push({ name: testFn.name, durations });
   }
 
-  run();
+  return results;
 }
 
 function __minMaxMeanMedianPct99Pct95(times: number[]): Stats {
@@ -231,7 +216,7 @@ punch.configure = function (opts: Partial<PunchBenchOptions>) {
 
 punch.go = function (cb?: OnFinished) {
   if (!__opts) throw new Error(".configure has not been called! Abort.");
-  __compare(__tests, __opts.count, __opts.nowFn, function (results) {
+  __compare(__tests, __opts.count, __opts.nowFn).then(results => {
     const computed = __compute(results);
     const summaries = __summarize(computed);
     const table = __asTable(summaries);
