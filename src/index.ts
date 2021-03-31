@@ -18,6 +18,7 @@ export type BenchResult = {
   durations: number[];
   frames: number;
   ticks: number;
+  benchDuration: number;
 };
 
 export type Stats = {
@@ -32,6 +33,7 @@ export type Stats = {
   ticks: number;
   pctFramesOnTime: number;
   pctTicksOnTime: number;
+  benchDuration: number;
 };
 
 export type SingleStatSummary = {
@@ -49,10 +51,11 @@ export type NamedStats = { name: string; stats: Stats };
 export type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
 
 async function __bench(
+  name: string,
   fn: BenchedFunction,
   times: number,
   timingFn: PunchBenchOptions["nowFn"]
-) {
+): Promise<BenchResult> {
   const durations: number[] = [];
   let frames = 0;
   let ticks = 0;
@@ -68,6 +71,8 @@ async function __bench(
     ticks++;
     timeoutHandle = setTimeout(doTick);
   }
+
+  const benchStart = timingFn();
 
   if (typeof window !== "undefined" && window.requestAnimationFrame) {
     doFrame();
@@ -86,13 +91,15 @@ async function __bench(
     });
   }
 
+  const benchEnd = timingFn();
+
   if (typeof window !== "undefined" && window.cancelAnimationFrame) {
     window.cancelAnimationFrame(animHandle);
   }
 
   clearTimeout(timeoutHandle);
 
-  return { durations, frames, ticks };
+  return { name, durations, frames, ticks, benchDuration: benchEnd - benchStart };
 }
 
 async function __compare(
@@ -106,8 +113,8 @@ async function __compare(
     const testFn = tests[i]!;
     // Give the browser time for GC, hopefully.
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const { durations, frames, ticks } = await __bench(testFn, times, timingFn);
-    results.push({ name: testFn.name, durations, frames, ticks });
+    const result = await __bench(testFn.name, testFn, times, timingFn);
+    results.push(result);
   }
 
   return results;
@@ -116,7 +123,8 @@ async function __compare(
 function __minMaxMeanMedianPct99Pct95(
   times: number[],
   frames: number,
-  ticks: number
+  ticks: number,
+  benchDuration: number,
 ): Stats {
   const min = Math.min.apply(null, times);
   const max = Math.max.apply(null, times);
@@ -126,8 +134,8 @@ function __minMaxMeanMedianPct99Pct95(
   const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
   const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
   const sum = times.reduce((sum, curr) => sum + curr, 0);
-  const expectedFramesAt60FPS = sum / (1000 / 60);
-  const expectedTicks = sum / (typeof process !== "undefined" ? 1 : 4); // Typical NODEJS/DOM clamping;
+  const expectedFramesAt60FPS = benchDuration / (1000 / 60);
+  const expectedTicks = benchDuration / (typeof process !== "undefined" ? 1 : 4); // Typical NODEJS/DOM clamping;
   const pctFramesOnTime = frames / expectedFramesAt60FPS;
   const pctTicksOnTime = ticks / expectedTicks;
   return {
@@ -138,6 +146,7 @@ function __minMaxMeanMedianPct99Pct95(
     pct99,
     pct95,
     sum,
+    benchDuration,
     frames,
     ticks,
     pctFramesOnTime,
@@ -189,7 +198,8 @@ function __compute(results: BenchResult[]): NamedStats[] {
     stats: __minMaxMeanMedianPct99Pct95(
       result.durations,
       result.frames,
-      result.ticks
+      result.ticks,
+      result.benchDuration
     ),
   }));
   return stats;
