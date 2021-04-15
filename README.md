@@ -24,7 +24,7 @@ Benchmarking is hard, especially on the Web. The tradeoffs are usually not as si
 
 The answer is that is depends on what you need. And `punch-bench` is here to help!.
 
-The name: this library was initially even simpler, referencing the phrase "punch it!" for pressing down on the acelerator pedal in a car (or warp engines...). Now it's a bit more complex but better than ever.
+> This library was initially even simpler, referencing the phrase "punch it!" for pressing down on the acelerator pedal in a car (or warp engines...). Now it's a bit more complex but better than ever.
 
 Quick Start
 -----------
@@ -55,7 +55,7 @@ punch(function canvasToBlob(done) {
 });
 ```
 
-Quick Start (generate)
+Quick Start (CLI/Generate)
 ----------------------
 
 `punch-bench` can generate code from your benchmark definition to be executed elsewhere:
@@ -84,7 +84,7 @@ Now you can paste the code into a browser console, and after a few seconds you'l
 npx punch-bench ./canvas.ts | node
 ```
 
-Quick Start (library)
+Quick Start (Library)
 -----------
 
 `punch-bench` can also be used as a library (TypeScript or JS), such as within nodejs or a browser bundler like webpack. Using the same example above:
@@ -129,7 +129,7 @@ High Precision Timers
 Due to security issues, browsers reduced the timing precision exposed to JS code (often rounded to 1ms). For more information, see https://developer.mozilla.org/en-US/docs/Web/API/Performance/now#reduced_time_precision. If you're getting suspciously "even" numbers (lots of zeros) this is probably an issue.
 
 
-Usage (CLI)
+Usage (Generate/CLI)
 ------------
 
 ```sh
