@@ -5,15 +5,17 @@ Benchmark code with nuance!
 
 `punch-bench` is a benchmarking utility that helps you answer questions like:
 
-- which implementation is absolutely faster?
-- which implementation is consistently faster?
-- which implementation blocks fewer render frames?
-- which implementation blocks fewer event loop ticks?
-- What's the worst performance to expect?
+- Which implementation is absolutely faster?
+- Which implementation is consistently faster?
+- Which implementation blocks fewer render frames?
+- Which implementation blocks fewer event loop ticks?
+- What's the worst case performance?
 
 Additionally, `punch-bench` will _generate_ code so you can run your benchmark in whatever environment you'd like, with zero dependencies! Supports TypeScript too (and of course also plain JS)!
 
 [Check the sample output. It even has graphs!](./docs/example-output-chrome.txt)
+
+[But what do those graphs mean?](./docs/analysis.md)
 
 Rationale
 ---------
@@ -60,28 +62,27 @@ Quick Start (generate)
 
 ```sh
 npx punch-bench ./canvas.ts
-... a lot of code will be output ...
+... a lot of code ...
 ```
 
-This will output a lot of code (your benchmark will be near the bottom, and should be quite readable, unmangled). Either pipe it to a file, or your clipboard:
+This will output a [rollup-ed version of your code](https://rollupjs.org) (your benchmark will be near the bottom, and should be quite readable, unmangled). Either pipe it to a file, or your clipboard:
 
 ```sh
-# to a file
+# to a file...
 npx punch-bench ./canvas.ts > canvas-benchmark.js
 ```
 
 ```sh
-# to your clipboard
+# to your clipboard...
 npx punch-bench ./canvas.ts | pbcopy
 ```
 
 Now you can paste the code into a browser console, and after a few seconds you'll see the results! For more details, see [the example analysis](./docs/analysis.md)
 
 ```sh
-# right back into node to immediately test!
+# ...or right back into node to immediately test!
 npx punch-bench ./canvas.ts | node
 ```
-
 
 Quick Start (library)
 -----------
