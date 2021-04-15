@@ -79,4 +79,4 @@ There is a "hump" at the beginning of each graph. This is V8 running the generat
 
 For a more in-depth description, see the "No Warmup" section in this excellent article about Web Assembly: https://surma.dev/things/js-to-asc/index.html.
 
-[Firefox has similar behavior](/docs/example-output-chrome.txt), although it tends to struggle more with garbage collection. This results in a wobbly graph.
+[Firefox has similar behavior](/docs/example-output-firefox.txt), although it tends to struggle more with garbage collection. This results in a wobbly graph.
