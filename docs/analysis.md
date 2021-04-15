@@ -1,7 +1,7 @@
 Example Analysis
 ================
 
-Benchmarking is hard, especially across different browsers. Here is one way to run and interpret the results from [`fixtures/canvas.js`](/fixtures/canvas.js).
+Benchmarking is hard, especially across different browsers. Here is one way to run and interpret the results from [`fixtures/canvas.ts`](/fixtures/canvas.ts).
 
 _NOTE: This benchmark is here to illustrate how difficult benchmarking on the web can be, and how to interpret the results. These were the results on my machine, and specific browser versions. Always measure again! And don't fault your (least) favorite browser for being too fast or slow, it's trying its best. As web developers, we need to adapt to with what the browsers give us, and provide the best end-user experience we can. The more you measure, the more you can adapt!_
 
@@ -32,29 +32,29 @@ Ignoring the graphs for a moment, we have several tables. I'll put the Firefox o
 ```
 toDataUrl                                      toBlob
 ╔═════════════════╤═══════════════╗         ╔═════════════════╤═══════════════╗
-║ min               │ 21.00000000    ║         ║ min               │ 12.00000000    ║
+║ min             │ 21.00000000    ║         ║ min             │ 12.00000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ max               │ 42.00000000    ║         ║ max               │ 23.00000000    ║
+║ max             │ 42.00000000    ║         ║ max             │ 23.00000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ mean              │ 27.67000000    ║         ║ mean              │ 14.36000000    ║
+║ mean            │ 27.67000000    ║         ║ mean            │ 14.36000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ median            │ 27.00000000    ║         ║ median            │ 14.00000000    ║
+║ median          │ 27.00000000    ║         ║ median          │ 14.00000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ percentile99      │ 38.00000000    ║         ║ percentile99      │ 20.00000000    ║
+║ percentile99    │ 38.00000000    ║         ║ percentile99    │ 20.00000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ percentile95      │ 34.00000000    ║         ║ percentile95      │ 18.00000000    ║
+║ percentile95    │ 34.00000000    ║         ║ percentile95    │ 18.00000000    ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ sum               │ 2767.00000000  ║         ║ sum               │ 1436.00000000  ║
+║ sum             │ 2767.00000000  ║         ║ sum             │ 1436.00000000  ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ pctFramesOnTime   │ 0.00600601     ║         ║ pctFramesOnTime   │ 1.01359134     ║
+║ pctFramesOnTime │ 0.00600601     ║         ║ pctFramesOnTime │ 1.01359134     ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ pctTicksOnTime    │ 0.00144144     ║         ║ pctTicksOnTime    │ 0.33172080     ║
+║ pctTicksOnTime  │ 0.00144144     ║         ║ pctTicksOnTime  │ 0.33172080     ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ total ticks       │ 1              ║         ║ total ticks       │ 120            ║
+║ total ticks     │ 1              ║         ║ total ticks     │ 120            ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ total frames      │ 1              ║         ║ total frames      │ 88             ║
+║ total frames    │ 1              ║         ║ total frames    │ 88             ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
-║ total duration    │ 2775           ║         ║ total duration    │ 1447           ║
+║ total duration  │ 2775           ║         ║ total duration  │ 1447           ║
 ╚═════════════════╧═══════════════╝         ╚═════════════════╧═══════════════╝
 ```
 
