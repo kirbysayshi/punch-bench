@@ -1,7 +1,7 @@
 punch-bench
 ===========
 
-Benchmark code with nuance!
+Benchmark web code with nuance!
 
 `punch-bench` is a benchmarking utility that helps you answer questions like:
 
