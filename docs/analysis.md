@@ -30,7 +30,7 @@ First, we have two functions to compare: getting a dataURL out of a canvas using
 Ignoring the graphs for a moment, we have several tables. I'll put the Firefox ones below:
 
 ```
-toDataUrl                                      toBlob
+toDataUrl                                   toBlob
 ╔═════════════════╤═══════════════╗         ╔═════════════════╤═══════════════╗
 ║ min             │ 21.00000000   ║         ║ min             │ 12.00000000   ║
 ╟─────────────────┼───────────────╢         ╟─────────────────┼───────────────╢
