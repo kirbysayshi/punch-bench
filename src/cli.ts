@@ -16,14 +16,15 @@ const tempFile = generateConcatedFile(testFile);
 
 function generateConcatedFile(testFile: string) {
   const tempFile = tmpNameSync();
-  const pathToPunchBenchMain = require.resolve('./');
+  const pathToPunchBenchMain = require.resolve("./");
+
   // Rollup needs a file to load, so we must use a tempfile.
   fs.writeFileSync(
     tempFile,
     `
 import {punch, go, configure} from ${JSON.stringify(pathToPunchBenchMain)};
 ${testFile}
-${testFile.indexOf("go()") > -1 ? "" : "go();"}
+${testFile.indexOf("go()") > -1 ? "" : `;go();`}
 `
   );
   return tempFile;
@@ -60,7 +61,9 @@ async function build() {
   for (const chunkOrAsset of output) {
     if (chunkOrAsset.type === "asset") {
       console.log("Asset", chunkOrAsset);
-      throw new Error(`Imported Assets are not supported by punch-bench: ${chunkOrAsset.fileName}`);
+      throw new Error(
+        `Imported Assets are not supported by punch-bench: ${chunkOrAsset.fileName}`
+      );
     } else {
       // Wrap in {} to prevent too many leaks into global
       process.stdout.write(`{\n${chunkOrAsset.code}\n}`);

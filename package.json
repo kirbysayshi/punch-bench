@@ -14,7 +14,9 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .js,.ts index.js src bin",
-    "test": "npm run build && node ./dist/cli.js ./fixtures/large-array.js | node && node -r './fixtures/node-large-array.js' -e ';' ",
+    "test": "npm run build && npm run test:pipe && npm run test:import",
+    "test:pipe": "node ./dist/cli.js ./fixtures/large-array.js | node",
+    "test:import": "node -r './fixtures/node-large-array.js' -e ';'",
     "prepublishOnly": "npm run test"
   },
   "repository": {
@@ -39,7 +41,9 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-url": "^6.0.0",
+    "@types/asciichart": "^1.5.4",
     "@types/node": "14",
+    "@types/table": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "eslint": "^7.23.0",
@@ -48,6 +52,8 @@
   },
   "dependencies": {
     "@types/tmp": "^0.2.0",
+    "asciichart": "^1.5.25",
+    "table": "^6.0.9",
     "tmp": "^0.2.1",
     "tslib": "^2.1.0"
   }

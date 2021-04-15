@@ -1,163 +1,190 @@
 punch-bench
 ===========
 
-Benchmark different functions and get useful stats with zero config / mangling of numbers. This takes simple functions and generates the actual JS to run in your testing environment. Imagine benchmarking `fetch` vs `XMLHttpRequest`.
+Benchmark code with nuance!
 
-There is also a node-only API that will do function benchmarking as well!
+`punch-bench` is a benchmarking utility that helps you answer questions like:
 
-```
-$ punch-bench ./my-test.js | node
-stat                fastest             percentFaster       difference
---------------------------------------------------------------------------------
-min                 manualForLoop       98.98%              0.63ms
-max                 manualForLoop       75.99%              1.71ms
-mean                manualForLoop       98.47%              0.78ms
-median              manualForLoop       98.67%              0.70ms
-pct99               manualForLoop       96.72%              1.56ms
-pct95               manualForLoop       98.54%              1.19ms
-```
+- which implementation is absolutely faster?
+- which implementation is consistently faster?
+- which implementation blocks fewer render frames?
+- which implementation blocks fewer event loop ticks?
+- What's the worst performance to expect?
 
-Usage (generated benchmarks)
-----------------------------
+Additionally, `punch-bench` will _generate_ code so you can run your benchmark in whatever environment you'd like, with zero dependencies! Supports TypeScript too (and of course also plain JS)!
 
-First make the test file:
-
-```
-// my-test.js
-// `punch` is provided by the punch-bench harness
-var hugeArray = Array(1000).fill('yo');
-
-// The function name will be used in the stats report
-punch(function manualForLoop (done) {
-  for (var i = 0; i < hugeArray.length; i++) {
-    hugeArray[i];
-  }
-  done();
-});
-
-punch(function forEachLoop (done) {
-  hugeArray.forEach(function (entry) {
-    entry;
-  });
-  done();
-});
-
-// you can have as many as you want...
-
-// Optionally configure the test
-punch.configure({ count: 10000 });
-```
-
-Then get the generated test:
-
-```
-$ punch-bench ./my-test.js
-
-... a whole bunch of JS ...
-```
-
-Might be easier to use clipboard helpers:
-
-```
-$ punch-bench ./my-test.js | pbcopy
-
-```
-
-And then paste that into a browser DevTools console or node:
-
-```
-$ pbpaste | node
-
-stat                fastest             percentFaster       difference
---------------------------------------------------------------------------------
-min                 manualForLoop       98.98%              0.63ms
-max                 manualForLoop       75.99%              1.71ms
-mean                manualForLoop       98.47%              0.78ms
-median              manualForLoop       98.67%              0.70ms
-pct99               manualForLoop       96.72%              1.56ms
-pct95               manualForLoop       98.54%              1.19ms
-```
-
-You can even go in one step if testing in node:
-
-```
-$ punch-bench ./my-test.js | node
-```
-
-Usage (node-only)
------------------
-
-First make the test file:
-
-```
-// my-test.js
-var punch = require('punch');
-var hugeArray = Array(1000000).fill('yo');
-
-// The function name will be used in the stats report
-punch(function manualForLoop (done) {
-  for (var i = 0; i < hugeArray.length; i++) {
-    hugeArray[i];
-  }
-  done();
-});
-
-punch(function forEachLoop (done) {
-  hugeArray.forEach(function (entry) {
-    entry;
-  });
-  done();
-});
-
-// Optionally configure the test
-punch.configure({
-  count: 10000
-});
-
-// execute!
-punch.go();
-```
-
-Then run it:
-
-```
-node ./my-file.js
-```
-
-Options
--------
-
-### `count` (default: 100)
-
-The number of iterations for each test.
-
-```
-punch.configure({ count: 10000 });
-```
-
-### `nowFn` (default: environment-specific)
-
-A function that returns relative milliseconds, used to time-diff runs. In a browser, this will be `window.performance.now`, in node it is `(process.hrtime()[0] * 1e9 + process.hrtime()[1]) / 1000`. The proper function is automatically determined, but you can specify something different if you have more exotic environment. It is used for relative comparisons, so it does not need to be related to Epoch.
-
-```
-punch.configure({
-  nowFn: function () {
-    return Date.now();
-  }
-});
-```
+[Check the sample output. It even has graphs!](./docs/example-output-chrome.txt)
 
 Rationale
 ---------
 
-Sometimes you want to compare things, but don't want to worry about suites and events and stats and whatnot. And sometimes you want to test things in a browser, but don't want to worry about `require` or libraries. So this utility outputs the JS you need to execute in a browser or node to get some useful stats.
+Benchmarking is hard, especially on the Web. The tradeoffs are usually not as simple as "what is fastest". What does "fastest" mean? If a function took 100ms of blocking time, and another took 200ms of non-blocking time, which one was "fastest"?
 
-TODO
-----
+The answer is that is depends on what you need. And `punch-bench` is here to help!.
 
-- Better description of stats / names.
-- Tests: not 100% critical yet, since this is still pretty simple. But the data structures are pretty weird, so tests would help make that clearer.
-- Refactor general structure. Everything is `__prefixed` right now to prevent script collisions, but that could be avoided by making them hang off of `punch`.
+The name: this library was initially even simpler, referencing the phrase "punch it!" for pressing down on the acelerator pedal in a car (or warp engines...). Now it's a bit more complex but better than ever.
+
+Quick Start
+-----------
+
+First, you need a benchmark definition. This is the code that defines the benchmark. For example:
+
+```js
+// canvas.ts
+
+const canvas = document.createElement('canvas');
+canvas.width = 600;
+canvas.height = 600;
+
+punch(function canvasToDataURL(done) {
+  canvas.toDataURL('text/jpeg', 0.3);
+  done();
+});
+
+punch(function canvasToBlob(done) {
+  canvas.toBlob(blob => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      reader.result;
+      done();
+    }, false);
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg', 0.3);
+});
+```
+
+Quick Start (generate)
+----------------------
+
+`punch-bench` can generate code from your benchmark definition to be executed elsewhere:
+
+```sh
+npx punch-bench ./canvas.ts
+... a lot of code will be output ...
+```
+
+This will output a lot of code (your benchmark will be near the bottom, and should be quite readable, unmangled). Either pipe it to a file, or your clipboard:
+
+```sh
+# to a file
+npx punch-bench ./canvas.ts > canvas-benchmark.js
+```
+
+```sh
+# to your clipboard
+npx punch-bench ./canvas.ts | pbcopy
+```
+
+Now you can paste the code into a browser console, and after a few seconds you'll see the results! For more details, see [the example analysis](./docs/analysis.md)
+
+
+Quick Start (library)
+-----------
+
+`punch-bench` can also be used as a library (TypeScript or JS), such as within nodejs or a browser bundler like webpack. Using the same example above:
+
+```js
+import { PunchBench } from 'punch-bench';
+
+const { punch, configure, go } = new PunchBench();
+
+const canvas = document.createElement('canvas');
+canvas.width = 600;
+canvas.height = 600;
+
+punch(function canvasToDataURL(done) {
+  canvas.toDataURL('text/jpeg', 0.3);
+  done();
+});
+
+punch(function canvasToBlob(done) {
+  canvas.toBlob(blob => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      reader.result;
+      done();
+    }, false);
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg', 0.3);
+});
+
+configure({ count: 100 })
+
+// Don't forget to start the benchmark!
+go();
+```
+
+The main difference is that you can import either the premade `PunchBench` instance, or create your own like the above code does. `go` also returns a `Promise` so it can be `await`ed.
+
+
+High Precision Timers
+---------------------
+
+Due to security issues, browsers reduced the timing precision exposed to JS code (often rounded to 1ms). For more information, see https://developer.mozilla.org/en-US/docs/Web/API/Performance/now#reduced_time_precision. If you're getting suspciously "even" numbers (lots of zeros) this is probably an issue.
+
+
+Usage (CLI)
+------------
+
+```sh
+npx punch-bench [path/to/benchmark.(js|ts)]
+```
+
+Outputs a rollup-compiled bundled of your benchmark and `punch-bench`. It also prepends your code with `punch`, `go`, and `configure` variables from a `PunchBench` instance, and if you do not call `go()`, will also append `go()`.
+
+Usage (Library)
+---------------
+
+```js
+
+import { PunchBench } from "punch-bench";
+
+// Each of these are optional, in addition to the object itself!
+const options = {
+  count: 1000,              // number of iterations per test
+  plotWidth: 80,            // how wide to plot each graph, in characters
+  plotHeight: 20,           // how tall to plot each graph, in lines
+
+  // This will be oe of the following if in a browser or node, respectively.
+  // You can pass your own if the environment is more exotic (or does not
+  // have one of these APIs), e.g. `() => Date.now()`. It only needs to
+  // provide _relative_ time, not epoch time.
+  nowFn:
+    window.performance.now  // browser
+    | () =>                 // node
+      (process.hrtime()[0] * 1e9 +
+        process.hrtime()[1]) /
+      1000; 
+}
+
+const b = new PunchBench()
+
+b.punch(function nameOfBenchmark(done) {
+  // The function name is used to label the benchmark results!
+  
+  // Must call done to signal the benchmark is done!
+  done()
+});
+
+b.configure() // any of the options above
+
+b.go(function optionalCallback(results) => {
+  // see PunchBenchResult in src/index.ts
+})
+
+// It's also a promise!
+
+;(async function something() {
+  const results = await go();
+  // do something with these!
+
+  // pass a callback to prevent default dumping to console
+  const results2 = await go(() => {});
+}());
+
+```
+
+
 
 License
 -------

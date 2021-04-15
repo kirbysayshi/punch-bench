@@ -22,6 +22,6 @@ punch(function forEachLoop (done) {
 // eslint-disable-next-line no-undef
 configure({ count: 10000 });
 
-go(({ table, results, computed, summaries }) => {
-  console.log(results, computed);
+go(({ results }) => {
+  console.log(results);
 });

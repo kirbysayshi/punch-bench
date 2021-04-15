@@ -1,17 +1,18 @@
 /* eslint-env shared-node-browser */
 
+import { table } from "table";
+import { plot } from "asciichart";
+import { largestTriangleThreeBuckets } from "./downsample";
+
 export interface BenchedFunction {
   (done: () => void): void;
 }
 
 export type PunchBenchResult = {
-  table: string;
-  results: BenchResult[];
-  computed: NamedStats[];
-  summaries: SummarizedStats;
+  results: Required<BenchResult>[];
 };
 
-export type OnFinished = (result: PunchBenchResult) => void;
+export type PunchBenchOnFinished = (result: PunchBenchResult) => void;
 
 export type BenchResult = {
   name: string;
@@ -19,6 +20,9 @@ export type BenchResult = {
   frames: number;
   ticks: number;
   benchDuration: number;
+  stats?: Stats;
+  plot?: string;
+  table?: string;
 };
 
 export type Stats = {
@@ -26,29 +30,23 @@ export type Stats = {
   max: number;
   mean: number;
   median: number;
-  pct99: number;
-  pct95: number;
+  percentile99: number;
+  percentile95: number;
   sum: number;
-  frames: number;
-  ticks: number;
   pctFramesOnTime: number;
   pctTicksOnTime: number;
-  benchDuration: number;
 };
 
-export type SingleStatSummary = {
-  type: keyof Stats;
-  fastest: string;
-  slowest: string;
-  pctFaster: number;
-  percentFaster: string;
-  difference: string;
-  total: string;
+export const defaultCallback: PunchBenchOnFinished = function printResults(
+  pb: PunchBenchResult
+) {
+  pb.results.forEach((result) => {
+    console.log(result.name);
+    console.log(result.plot);
+    console.log(result.table);
+    console.log();
+  });
 };
-
-export type NamedStats = { name: string; stats: Stats };
-
-export type SummarizedStats = { [Name in keyof Stats]: SingleStatSummary };
 
 async function __bench(
   name: string,
@@ -62,6 +60,9 @@ async function __bench(
   let animHandle = 0;
   let timeoutHandle: NodeJS.Timeout | number = 0;
 
+  // TODO: warmup runs?
+  // TODO: calibration runs? probably not.
+
   function doFrame() {
     frames++;
     animHandle = requestAnimationFrame(doFrame);
@@ -72,13 +73,13 @@ async function __bench(
     timeoutHandle = setTimeout(doTick);
   }
 
-  const benchStart = timingFn();
-
   if (typeof window !== "undefined" && window.requestAnimationFrame) {
     doFrame();
   }
 
   doTick();
+
+  const benchStart = timingFn();
 
   for (let i = 0; i < times; i++) {
     await new Promise<void>((resolve) => {
@@ -99,7 +100,13 @@ async function __bench(
 
   clearTimeout(timeoutHandle);
 
-  return { name, durations, frames, ticks, benchDuration: benchEnd - benchStart };
+  return {
+    name,
+    durations,
+    frames,
+    ticks,
+    benchDuration: benchEnd - benchStart,
+  };
 }
 
 async function __compare(
@@ -110,7 +117,7 @@ async function __compare(
   const results: BenchResult[] = [];
 
   for (let i = 0; i < tests.length; i++) {
-    const testFn = tests[i]!;
+    const testFn = tests[i] as BenchedFunction;
     // Give the browser time for GC, hopefully.
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const result = await __bench(testFn.name, testFn, times, timingFn);
@@ -124,18 +131,23 @@ function __minMaxMeanMedianPct99Pct95(
   times: number[],
   frames: number,
   ticks: number,
-  benchDuration: number,
+  benchDuration: number
 ): Stats {
   const min = Math.min.apply(null, times);
   const max = Math.max.apply(null, times);
   const mean = times.reduce((sum, curr) => sum + curr, 0) / times.length;
   const sortedAsc = times.slice().sort((a, b) => a - b);
-  const median = sortedAsc[Math.floor((times.length - 1) / 2)]!;
-  const pct99 = sortedAsc[Math.round((times.length - 1) * 0.99)]!;
-  const pct95 = sortedAsc[Math.round((times.length - 1) * 0.95)]!;
+  const median = sortedAsc[Math.floor((times.length - 1) / 2)] as number;
+  const percentile99 = sortedAsc[
+    Math.floor((times.length - 1) * 0.99)
+  ] as number;
+  const percentile95 = sortedAsc[
+    Math.floor((times.length - 1) * 0.95)
+  ] as number;
   const sum = times.reduce((sum, curr) => sum + curr, 0);
   const expectedFramesAt60FPS = benchDuration / (1000 / 60);
-  const expectedTicks = benchDuration / (typeof process !== "undefined" ? 1 : 4); // Typical NODEJS/DOM clamping;
+  const expectedTicks =
+    benchDuration / (typeof process !== "undefined" ? 1 : 4); // Typical NODEJS/DOM clamping;
   const pctFramesOnTime = frames / expectedFramesAt60FPS;
   const pctTicksOnTime = ticks / expectedTicks;
   return {
@@ -143,104 +155,78 @@ function __minMaxMeanMedianPct99Pct95(
     max,
     mean,
     median,
-    pct99,
-    pct95,
+    percentile99,
+    percentile95,
     sum,
-    benchDuration,
-    frames,
-    ticks,
     pctFramesOnTime,
     pctTicksOnTime,
   };
 }
 
-function __summarize(namedStats: NamedStats[]) {
-  return Object.keys(namedStats[0]!.stats)
-    .map((name) => statSummary(namedStats, name as keyof Stats))
-    .reduce((all, curr) => {
-      all[curr.type] = curr;
-      return all;
-    }, {} as SummarizedStats);
+function __attachStats(
+  results: BenchResult[],
+  opts: PunchBenchOptions
+): Required<BenchResult>[] {
+  let max = -Infinity;
 
-  function statSummary(
-    namedStats: NamedStats[],
-    statName: keyof Stats
-  ): SingleStatSummary {
-    const values = namedStats.map(({ stats }) => stats[statName]);
-    const total = values.reduce((all, v) => all + v, 0);
-    const idxFastest = values.indexOf(Math.min.apply(null, values));
-    const idxSlowest = values.indexOf(Math.max.apply(null, values));
-    const diff = values[idxSlowest]! - values[idxFastest]!;
-    // If the slowest is zero... then it's likely something has been optimized out.
-    // TODO: fix this case.
-    const pctFaster =
-      1 -
-      values[idxFastest]! /
-        (values[idxSlowest]! === 0 ? 1 : values[idxSlowest]!);
-    const pctFasterPrint = (pctFaster * 100).toFixed(2) + "%";
-    const nameFastest = namedStats[idxFastest]!.name;
-    const nameSlowest = namedStats[idxSlowest]!.name;
-    return {
-      type: statName,
-      fastest: nameFastest,
-      slowest: nameSlowest,
-      pctFaster,
-      percentFaster: pctFasterPrint,
-      difference: diff.toFixed(3) + "ms",
-      total: total.toFixed(3) + "ms",
-    };
-  }
-}
-
-function __compute(results: BenchResult[]): NamedStats[] {
-  const stats = results.map((result) => ({
-    name: result.name,
-    stats: __minMaxMeanMedianPct99Pct95(
+  results.forEach((result) => {
+    result.stats = __minMaxMeanMedianPct99Pct95(
       result.durations,
       result.frames,
       result.ticks,
       result.benchDuration
-    ),
-  }));
-  return stats;
-}
+    );
+    max = Math.max(max, result.stats.max);
 
-function __asTable(summaries: SummarizedStats) {
-  const fieldNames = [
-    "fastest",
-    "percentFaster",
-    "difference",
-    "total",
-  ] as (keyof SingleStatSummary)[];
+    const rows: [string, number | string][] = [];
 
-  const colSize = 20;
-  let out =
-    "" +
-    padColumn("stat", colSize) +
-    fieldNames.reduce((all, name) => all + padColumn(name, colSize), "") +
-    "\n";
+    // TODO: nice names for each stat (with descriptions?)
 
-  out += out.replace(/./g, "-");
+    for (const [name, value] of Object.entries(result.stats)) {
+      rows.push([name, value.toFixed(8)]);
+    }
 
-  (Object.keys(summaries) as (keyof Stats)[]).forEach((statName) => {
-    const stats = summaries[statName];
-    out +=
-      "" +
-      padColumn(statName, colSize) +
-      fieldNames.reduce(
-        (all, name) => all + padColumn(stats[name] as string, colSize),
-        ""
-      ) +
-      "\n";
+    rows.push(
+      ["total ticks", result.ticks],
+      ["total frames", result.frames],
+      ["total duration", result.benchDuration]
+    );
+
+    result.table = table(rows);
   });
 
-  console.log(out);
-  return out;
+  results.forEach((result) => {
+    result.plot = simplifyAndPlot(result, max, opts.plotWidth, opts.plotHeight);
+  });
 
-  function padColumn(text: string, intended: number) {
-    const pad = Array(intended).fill(" ").join("");
-    return (text + pad).slice(0, intended);
-  }
+  return results.map((result) => {
+    for (const [key, val] of Object.entries(result)) {
+      if (val === undefined)
+        throw new Error(`Forgot to handle a required value! ${key} was ${val}`);
+    }
+    return result as Required<BenchResult>;
+  });
+}
+
+function simplifyAndPlot(
+  result: BenchResult,
+  maxValue: number,
+  buckets = 80,
+  height = 20
+) {
+  const simplified = largestTriangleThreeBuckets(
+    result.durations.map((d, i) => [i, d] as const),
+    buckets
+  );
+
+  const padding = Array(maxValue.toFixed(4).length).fill(' ').join('');
+
+  return plot(
+    simplified.map((p) => p[1]),
+    { height, min: 0, max: maxValue, format: (x: number) => {
+      return (padding + x.toFixed(4)).slice(-padding.length)
+    } }
+  );
 }
 
 const __envTimes = {
@@ -255,6 +241,8 @@ const __envTimes = {
 
 const __defaultOptions = {
   count: 1000,
+  plotWidth: 80,
+  plotHeight: 20,
   nowFn:
     typeof process !== "undefined" &&
     process.release &&
@@ -274,7 +262,7 @@ class PunchBench {
   // NOTE: using arrow assignment syntax to enable destructuring these from the
   // instance. It's just a little nicer to use in a module file.
 
-  configure = (opts: PunchBenchOptions): void => {
+  configure = (opts: Partial<PunchBenchOptions>): void => {
     this.opts = Object.assign({}, __defaultOptions, opts);
   };
 
@@ -282,22 +270,23 @@ class PunchBench {
     this.tests.push(fn);
   };
 
-  go = async (cb?: OnFinished): Promise<PunchBenchResult> => {
-    const results = await __compare(
-      this.tests,
-      this.opts.count,
-      this.opts.nowFn
+  go = async (
+    cb: PunchBenchOnFinished = defaultCallback
+  ): Promise<PunchBenchResult> => {
+    const results = __attachStats(
+      await __compare(this.tests, this.opts.count, this.opts.nowFn),
+      this.opts
     );
-    const computed = __compute(results);
-    const summaries = __summarize(computed);
-    const table = __asTable(summaries);
-    const finished = { table, results, computed, summaries };
-    if (cb) cb(finished);
+
+    // TODO: plot framerate? Will require measuring each frame/tick's time
+
+    const finished = { results };
+    cb(finished);
     return finished;
   };
 }
 
-// make a default instance
+// provide a default instance
 export const { punch, go, configure } = new PunchBench();
 
 export { PunchBench };
