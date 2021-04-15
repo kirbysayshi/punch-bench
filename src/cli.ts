@@ -3,6 +3,7 @@
 /* eslint-env node */
 
 import fs from "fs";
+import path from "path";
 import { tmpNameSync, setGracefulCleanup } from "tmp";
 import { rollup } from "rollup";
 import resolve from "@rollup/plugin-node-resolve";
@@ -11,11 +12,14 @@ import commonjs from "@rollup/plugin-commonjs";
 
 setGracefulCleanup();
 
-const testFile = loadTestFile(process.argv[2] as string);
+const testFilePath = process.argv[2] as string;
+const testFile = loadTestFile(testFilePath);
 const tempFile = generateConcatedFile(testFile);
 
 function generateConcatedFile(testFile: string) {
-  const tempFile = tmpNameSync();
+  // Ensure rollup has a file extension so it knows how to load/parse.
+  const ext = path.extname(testFilePath);
+  const tempFile = tmpNameSync({ postfix: ext });
   const pathToPunchBenchMain = require.resolve("./");
 
   // Rollup needs a file to load, so we must use a tempfile.
@@ -48,7 +52,11 @@ async function build() {
     plugins: [
       resolve({ extensions }),
       commonjs(),
-      babel({ extensions, babelHelpers: "bundled", include: ["src/**/*"] }),
+      babel({
+        extensions,
+        babelHelpers: "bundled",
+        presets: ["@babel/typescript"],
+      }),
     ],
   };
 
