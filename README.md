@@ -77,6 +77,11 @@ npx punch-bench ./canvas.ts | pbcopy
 
 Now you can paste the code into a browser console, and after a few seconds you'll see the results! For more details, see [the example analysis](./docs/analysis.md)
 
+```sh
+# right back into node to immediately test!
+npx punch-bench ./canvas.ts | node
+```
+
 
 Quick Start (library)
 -----------

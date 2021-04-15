@@ -14,10 +14,10 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .js,.ts index.js src bin",
-    "test": "npm run build && npm run test:pipe && npm run test:import",
+    "test": "yarn run build && yarn run test:pipe && yarn run test:import",
     "test:pipe": "node ./dist/cli.js ./fixtures/large-array.js | node",
     "test:import": "node -r './fixtures/node-large-array.js' -e ';'",
-    "prepublishOnly": "npm run test"
+    "prepublishOnly": "yarn run test"
   },
   "repository": {
     "type": "git",
